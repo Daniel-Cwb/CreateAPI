@@ -7,6 +7,8 @@ use App\Models\Train;
 // Importando a função
 use App\Helpes\FuncoesTrain;
 
+use Validator;
+
 use App\Enum\HttpCode;
 
 
@@ -48,27 +50,45 @@ class TrainController extends Controller
     // Metodo Post
     public function insert(Request $request) {
 
-        
-
-            // Vaidando se não tem campo em branco
-        $request->validate([
-        
-            "name" => "required|string|unique:posts|string|max:150",
-            "description" => "required|integer",
-            "weight" => "required|integer",
-            "times_series" => "required|integer",
-            "repetitions" => "required|integer",
-            "user_id"  => "required|integer"
-        ]);
-
         $input = $request->all();
 
+            // Vaidando se não tem campo em branco
+        $validator = Validator::make(
+            $input,
+            [
+        
+            "name" => "required|string|string|max:150",
+            "description" => "required|string",
+            "weight" => "required|integer|min:1|max:800",
+            "times_series" => "required|integer|min:1|max:40",
+            "repetitions" => "required|integer|min:1|max:150",
+            "user_id" => "required|integer|min:1"
+            ]
+        );
         $this->train->insert($input);
 
-        return response()->json([
-            "message" => "The insert was make with successfull"
+        if ($validator->fails()) {
 
-        ],HttpCode::HTTP_OK);
+            return response()->json(
+                [
+                    "message" => $validator->mensager()
+    
+                ],
+                HttpCode::NOT_ACCEPTABLE
+            );
+        }
+
+        
+
+       
+
+        return response()->json(
+            [
+                "message" => "The insert was make with successfull"
+
+            ],
+        HttpCode::HTTP_OK
+        );
     
     }
 }
